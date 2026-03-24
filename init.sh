@@ -126,7 +126,7 @@ run_task "Setup Typescript configuration" "cat <<EOF > tsconfig.json
         \"noUnusedLocals\": true,
         \"noUnusedParameters\": true,
         \"removeComments\": true,
-        \"routDir\": \"src\",
+        \"rootDir\": \"src\",
         \"strict\": true,
         \"strictBindCallApply\": true,
         \"strictBuiltinIteratorReturn\": true,
@@ -142,10 +142,12 @@ run_task "Setup Typescript configuration" "cat <<EOF > tsconfig.json
 EOF
 cat <<EOF > tsconfig.build.json
 {
-    \"extends\": \"./tsconfig.json\",
-    \"outDir\": \"buid\",
-    \"exclude\": [\"src/**/*.spec.ts\"],
-    \"include\": [\"src/**/*.ts\"]
+    \"compilerOptions\": {
+		\"outDir\": \"build\"
+	},
+	\"exclude\": [\"src/**/*.spec.ts\"],
+	\"extends\": \"./tsconfig.json\",
+	\"include\": [\"src/**/*.ts\"]
 }
 EOF
 cat <<EOF > tsconfig.test.json
@@ -176,7 +178,7 @@ run_task "Setup package.json" "cat <<EOF > package.json
     \"type\": \"module\",
     \"scripts\": {
         \"build\": \"tsc -p tsconfig.build.json\",
-        \"format\": \"prettier --write\",
+        \"format\": \"prettier --write .\",
         \"lint\": \"eslint --fix\",
         \"start\": \"node --env-file=.env .\",
         \"start:dev\": \"tsx --env-file=.env --watch src/main.ts\",
