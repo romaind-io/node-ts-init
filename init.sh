@@ -64,7 +64,7 @@ cat <<EOF > .vscode/settings.json
     \"editor.defaultFormatter\": \"esbenp.prettier-vscode\",
     \"editor.detectIndentation\": false,
     \"editor.formatOnSave\": true,
-    \"editor.rulers\": [80]
+    \"editor.rulers\": [120]
 }
 EOF"
 
@@ -81,19 +81,22 @@ cat <<EOF > .prettierrc
     \"arrowParens\": \"always\",
     \"bracketSpacing\":true,
     \"objectWrap\": \"preserve\",
-    \"printWidth\": 80,
+    \"printWidth\": 120,
     \"proseWrap\": \"preserve\",
     \"semi\": true,
     \"singleQuote\": true,
-    \"tabWidth\": 2,
+    \"tabWidth\": 4,
     \"trailingComma\": \"none\",
-    \"useTabs\": false
+    \"useTabs\": true
 }
 EOF"
 
 run_task "Setup ESLint configuration" "cat <<EOF > eslint.config.mjs
+//@ts-check
+
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+
 export default tseslint.config(
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
@@ -103,22 +106,64 @@ EOF"
 run_task "Setup Typescript configuration" "cat <<EOF > tsconfig.json
 {
     \"compilerOptions\": {
+        \"alwaysStrict\": true,
+        \"erasableSyntaxOnly\": true,
+        \"exactOptionalPropertyTypes\": true,
+        \"isolatedModules\": true,
         \"module\": \"nodenext\",
+        \"moduleDetection\": \"force\",
         \"moduleResolution\": \"nodenext\",
-        \"target\": \"esnext\",
-        \"rootDir\": \"src\",
-        \"outDir\": \"build\",
+        \"noImplicitAny\": true,
+        \"noEmitOnError\": true,
+        \"noErrorTruncation\": true,
+        \"noFallthroughCasesInSwitch\": true,
+        \"noImplicitOverride\": true,
+        \"noImplicitReturns\": true,
+        \"noImplicitThis\": true,
+        \"noPropertyAccessFromIndexSignature\": true,
+        \"noUncheckedIndexedAccess\": true,
+        \"noUncheckedSideEffectImports\": true,
+        \"noUnusedLocals\": true,
+        \"noUnusedParameters\": true,
+        \"removeComments\": true,
+        \"routDir\": \"src\",
         \"strict\": true,
-        \"esModuleInterop\": true,
-        \"skipLibCheck\": true
+        \"strictBindCallApply\": true,
+        \"strictBuiltinIteratorReturn\": true,
+        \"strictFunctionTypes\": true,
+        \"strictNullChecks\": true,
+        \"target\": \"esnext\",
+        \"types\": [\"node\"],
+        \"useUnknownInCatchVariables\": true,
+        \"verbatimModuleSyntax\": true
     },
     \"include\": [\"src/**/*.ts\"]
 }
-EOF"
+EOF
+cat <<EOF > tsconfig.build.json
+{
+    \"extends\": \"./tsconfig.json\",
+    \"outDir\": \"buid\",
+    \"exclude\": [\"src/**/*.spec.ts\"],
+    \"include\": [\"src/**/*.ts\"]
+}
+EOF
+cat <<EOF > tsconfig.test.json
+{
+    \"extends\": \"./tsconfig.json\",
+    \"include\": [\"src/**/*.ts\"]
+}
+EOF
+"
 
 run_task "Setup Vitest configuration" "cat <<EOF > vitest.config.mjs
+//@ts-check
+
 import { defineConfig } from 'vitest/config'
-export default defineConfig({ test: {} })
+
+export default defineConfig({
+    test: {}
+})
 EOF"
 
 run_task "Creating source folder" "mkdir -p src && touch src/main.ts"
@@ -127,11 +172,16 @@ run_task "Get Node version (.nvmrc)" "node -v | cut -d'.' -f1 > .nvmrc"
 
 run_task "Setup package.json" "cat <<EOF > package.json
 {
+    \"main\": \"build/main.js\",
     \"type\": \"module\",
     \"scripts\": {
-        \"build\": \"tsc\",
-        \"start\": \"node build/main.js\",
-        \"test\": \"vitest\"
+        \"build\": \"tsc -p tsconfig.build.json\",
+        \"format\": \"prettier --write\",
+        \"lint\": \"eslint --fix\",
+        \"start\": \"node --env-file=.env .\",
+        \"start:dev\": \"tsx --env-file=.env --watch src/main.ts\",
+        \"test\": \"vitest --run\",
+        \"test:watch\": \"vitest\",
     }
 }
 EOF"
