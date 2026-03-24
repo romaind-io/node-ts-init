@@ -181,7 +181,7 @@ run_task "Setup package.json" "cat <<EOF > package.json
         \"start\": \"node --env-file=.env .\",
         \"start:dev\": \"tsx --env-file=.env --watch src/main.ts\",
         \"test\": \"vitest --run\",
-        \"test:watch\": \"vitest\",
+        \"test:watch\": \"vitest\"
     }
 }
 EOF"
@@ -190,7 +190,7 @@ run_task "Resolving dependencies (npm)" "npm i -D @eslint/js @types/node eslint 
 
 run_task "Setup Git repository" "git init -q"
 
-echo -e "\n${GREEN}Project has been initialized!${DEFAULT}\n"
 echo -e "Auto-destruction of the init file!\n"
-
 rm -- "$SCRIPT_PATH"
+
+echo -e "\n${GREEN}Project has been initialized!${DEFAULT}\n"
